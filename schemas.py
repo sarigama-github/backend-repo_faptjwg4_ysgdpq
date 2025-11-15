@@ -1,48 +1,82 @@
 """
-Database Schemas
+Database Schemas for Souradeep Das — Physics | Astrophysics | Quantum Mechanics
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
+Each Pydantic model below maps to a MongoDB collection with the lowercase class name.
+Examples:
+- Project -> "project"
+- Simulator -> "simulator"
 
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+These schemas power the CMS and public site content.
 """
+from typing import List, Optional
+from pydantic import BaseModel, Field, HttpUrl
 
-from pydantic import BaseModel, Field
-from typing import Optional
+# THEME / SEO
+class Theme(BaseModel):
+    primary_color: str = Field("#6EE7F9")
+    accent_color: str = Field("#A78BFA")
+    background_variant: str = Field("dark", description="dark | light")
+    animation_intensity: int = Field(3, ge=0, le=5)
 
-# Example schemas (replace with your own):
+class SEO(BaseModel):
+    page: str = Field(..., description="route key like home, projects, about, skills, contact")
+    title: str
+    description: str
+    og_image: Optional[HttpUrl] = None
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+# CORE CONTENT
+class Hero(BaseModel):
+    title: str
+    subtitle: str
+    ctas: List[str] = Field(default_factory=lambda: ["View Projects", "Explore Simulators"]) 
+    quotes: List[str] = Field(default_factory=list)
+    featured: List[str] = Field(default_factory=list)
+    background_animations: List[str] = Field(default_factory=lambda: ["spline-cover", "stars", "nebula"])  
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class Project(BaseModel):
+    title: str
+    description: str
+    tags: List[str] = Field(default_factory=list)
+    cover_image: Optional[HttpUrl] = None
+    demo_link: Optional[HttpUrl] = None
+    modal_content: Optional[str] = None
+    category: Optional[str] = None
 
-# Add your own schemas here:
-# --------------------------------------------------
+class SimulatorParameter(BaseModel):
+    key: str
+    label: str
+    min: float
+    max: float
+    step: float
+    value: float
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Simulator(BaseModel):
+    name: str
+    description: str
+    parameters: List[SimulatorParameter] = Field(default_factory=list)
+    demo_asset: Optional[str] = Field(None, description="URL to animation or asset")
+
+class TimelineNode(BaseModel):
+    year: str
+    title: str
+    description: str
+    image: Optional[HttpUrl] = None
+
+class About(BaseModel):
+    bio: str
+    journey: List[TimelineNode] = Field(default_factory=list)
+    images: List[HttpUrl] = Field(default_factory=list)
+
+class Skill(BaseModel):
+    category: str
+    chips: List[str] = Field(default_factory=list)
+    icon: Optional[str] = Field(None, description="lucide icon name")
+    color: Optional[str] = None
+
+class Resume(BaseModel):
+    url: HttpUrl
+
+class Contact(BaseModel):
+    email: str
+    socials: List[str] = Field(default_factory=list)
+    metadata: Optional[dict] = Field(default_factory=dict)
